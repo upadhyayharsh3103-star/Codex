@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .manager-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .manager-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .info-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .vnc-container {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        #vnc-frame {
+            flex: 1;
+            border: none;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .quality-badge {
+            background: #10b981;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .quality-selector {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: #f3f4f6;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .quality-option {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quality-option:hover {
+            border-color: #667eea;
+        }
+
+        .quality-option.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .scroll-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: #f3f4f6;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .btn-scroll {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-scroll:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .btn-scroll:active {
+            transform: scale(0.95);
+        }
+
+        .scroll-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+            padding: 0 5px;
+        }
+
+        /* Settings Panel Styles */
+        .settings-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .settings-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-settings {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .close-settings:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .settings-body {
+            padding: 0;
+            max-height: calc(85vh - 80px);
+            overflow-y: auto;
+        }
+
+        .settings-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .settings-tab {
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .settings-tab:hover {
+            background: #eee;
+            color: #333;
+        }
+
+        .settings-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .settings-content {
+            display: none;
+            padding: 25px;
+        }
+
+        .settings-content.active {
+            display: block;
+        }
+
+        .settings-section {
+            margin-bottom: 25px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-section h3 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .setting-desc {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .setting-control {
+            margin-left: 20px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Select Dropdown */
+        .setting-select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            min-width: 140px;
+            cursor: pointer;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .setting-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Range Slider */
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .setting-range {
+            width: 120px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .setting-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .range-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            min-width: 40px;
+        }
+
+        /* Theme Preview */
+        .theme-options {
+            display: flex;
+            gap: 12px;
+        }
+
+        .theme-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .theme-option.active {
+            border-color: #667eea;
+        }
+
+        .theme-option:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-light {
+            background: linear-gradient(135deg, #f5f5f5 50%, #fff 50%);
+        }
+
+        .theme-dark {
+            background: linear-gradient(135deg, #1a1a2e 50%, #16213e 50%);
+        }
+
+        .theme-purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .theme-blue {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .theme-green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .theme-option span {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* Button styles in settings */
+        .settings-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .settings-btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .settings-btn-secondary:hover {
+            background: #e0e0e0;
+            box-shadow: none;
+        }
+
+        .settings-btn-danger {
+            background: #ef4444;
+        }
+
+        .settings-btn-danger:hover {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .browser-option-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .browser-option-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .browser-option-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Settings button in header */
+        .settings-trigger {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .settings-trigger:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Dark theme styles */
+        body.dark-theme {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        body.dark-theme .header {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-theme .info-card,
+        body.dark-theme .vnc-container {
+            background: #1e1e30;
+            color: #e0e0e0;
+        }
+
+        body.dark-theme .info-card h2 {
+            color: #a78bfa;
+        }
+
+        body.dark-theme .info-card p {
+            color: #b0b0b0;
+        }
+
+        body.dark-theme .btn-secondary {
+            background: #2d2d44;
+            color: #e0e0e0;
+        }
+
+        body.dark-theme .quality-selector,
+        body.dark-theme .scroll-controls {
+            background: #2d2d44;
+        }
+
+        body.dark-theme .quality-option {
+            background: #1e1e30;
+            color: #e0e0e0;
+            border-color: #3d3d5c;
+        }
+
+        /* Blue theme */
+        body.blue-theme {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        /* Green theme */
+        body.green-theme {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 10px 15px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+    <script>
+        function openManager() {
+            const apiKey = prompt('Enter your API key to access the Profile Manager.\n\nCheck the server console logs if you don\'t have it.');
+            if (apiKey) {
+                window.location.href = `/manager.html?api_key=${encodeURIComponent(apiKey)}`;
+            }
+            return false;
+        }
+        
+        function openAIAgent() {
+            const apiKey = prompt('Enter your API key to access the AI Agent.\n\nCheck the server console logs if you don\'t have it.');
+            if (apiKey) {
+                window.location.href = `/ai-agent.html?api_key=${encodeURIComponent(apiKey)}`;
+            }
+            return false;
+        }
+        
+        function openSettings() {
+            const apiKey = prompt('Enter your API key to access Browser Settings.\n\nCheck the server console logs if you don\'t have it.');
+            if (apiKey) {
+                window.location.href = `/browser-settings.html?api_key=${encodeURIComponent(apiKey)}`;
+            }
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>☁️ Cloud Browser</h1>
+        <div class="status">
+            <a href="#" onclick="openAIAgent()" class="manager-btn">AI Agent</a>
+            <a href="#" onclick="openManager()" class="manager-btn">Profile Manager</a>
+            <button class="settings-trigger" onclick="openSettings()">Settings</button>
+            <div class="status-indicator"></div>
+            <span>Active</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="info-card">
+            <h2>Welcome to Your Cloud Browser</h2>
+            <p>You now have access to a real Chromium browser running in the cloud. Use your mouse and keyboard to interact with it just like a local browser. The VNC connection provides full interactive control with no automation involved.</p>
+        </div>
+
+        <div class="vnc-container">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="connectVNC()">Connect to Browser</button>
+                <button class="btn btn-secondary" onclick="refreshBrowser()">Refresh Connection</button>
+                <button class="btn btn-secondary" onclick="toggleViewMode()">Enable Scrolling</button>
+                <button class="btn btn-secondary" onclick="toggleFullscreen()">Toggle Fullscreen</button>
+                <div class="scroll-controls">
+                    <span class="scroll-label">Scroll:</span>
+                    <button class="btn-scroll" onclick="scrollUp()" title="Scroll Up">▲</button>
+                    <button class="btn-scroll" onclick="scrollDown()" title="Scroll Down">▼</button>
+                    <button class="btn btn-secondary" onclick="toggleAutoScroll()" id="auto-scroll-btn" style="margin-left: 10px;">Keep Scrolling ⬇️</button>
+                </div>
+                <div class="quality-selector">
+                    <button class="quality-option active" onclick="setQuality('ultra')" title="Minimal resources - ultra fast">🔥 Ultra</button>
+                    <button class="quality-option" onclick="setQuality('low')" title="Lowest bandwidth usage">💾 Low</button>
+                    <button class="quality-option" onclick="setQuality('medium')" title="Balanced quality and bandwidth">⚖️ Balanced</button>
+                    <button class="quality-option" onclick="setQuality('high')" title="Best quality, highest bandwidth">🎨 High</button>
+                </div>
+            </div>
+            <iframe id="vnc-frame" src="about:blank" allow="clipboard-read; clipboard-write"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let connected = false;
+        let scrollingMode = false;
+        let currentQuality = 'low';
+        let autoScrollInterval = null;
+        let autoScrolling = false;
+        
+        const qualitySettings = {
+            ultra: { quality: 1, compression: 9, label: '🔥 Ultra Low' },
+            low: { quality: 2, compression: 9, label: '💾 Low Bandwidth' },
+            medium: { quality: 4, compression: 8, label: '⚖️ Balanced' },
+            high: { quality: 6, compression: 5, label: '🎨 High Quality' }
+        };
+
+        function setQuality(level) {
+            currentQuality = level;
+            
+            document.querySelectorAll('.quality-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (connected) {
+                const settings = qualitySettings[level];
+                const frame = document.getElementById('vnc-frame');
+                const resize = scrollingMode ? 'off' : 'scale';
+                const viewClip = scrollingMode ? '&view_clip=1' : '';
+                frame.src = `/novnc/vnc.html?autoconnect=1&path=websockify&resize=${resize}${viewClip}&quality=${settings.quality}&compression=${settings.compression}&reconnect=1`;
+            }
+        }
+
+        function connectVNC() {
+            const frame = document.getElementById('vnc-frame');
+            const settings = qualitySettings[currentQuality];
+            const vncUrl = `/novnc/vnc.html?autoconnect=1&path=websockify&resize=scale&quality=${settings.quality}&compression=${settings.compression}&reconnect=1`;
+            frame.src = vncUrl;
+            connected = true;
+            scrollingMode = false;
+            
+            setTimeout(() => {
+                const btn = document.querySelector('.btn-primary');
+                btn.textContent = 'Connected';
+                btn.style.background = '#4ade80';
+            }, 1000);
+        }
+
+        function refreshBrowser() {
+            if (connected) {
+                const frame = document.getElementById('vnc-frame');
+                frame.src = frame.src;
+            } else {
+                connectVNC();
+            }
+        }
+
+        function toggleViewMode() {
+            const frame = document.getElementById('vnc-frame');
+            const btn = event.target;
+            const settings = qualitySettings[currentQuality];
+            
+            if (!scrollingMode) {
+                frame.src = `/novnc/vnc.html?autoconnect=1&path=websockify&resize=off&view_clip=1&quality=${settings.quality}&compression=${settings.compression}&reconnect=1`;
+                btn.textContent = 'Disable Scrolling';
+                btn.style.background = '#667eea';
+                btn.style.color = 'white';
+                scrollingMode = true;
+            } else {
+                frame.src = `/novnc/vnc.html?autoconnect=1&path=websockify&resize=scale&quality=${settings.quality}&compression=${settings.compression}&reconnect=1`;
+                btn.textContent = 'Enable Scrolling';
+                btn.style.background = '#e5e7eb';
+                btn.style.color = '#374151';
+                scrollingMode = false;
+            }
+            connected = true;
+        }
+
+        function toggleFullscreen() {
+            const container = document.querySelector('.vnc-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function scrollUp() {
+            fetch('/api/send-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'Page_Up' })
+            }).catch(err => console.error('Scroll up failed:', err));
+        }
+
+        function scrollDown() {
+            fetch('/api/send-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'Page_Down' })
+            }).catch(err => console.error('Scroll down failed:', err));
+        }
+
+        function toggleAutoScroll() {
+            const btn = document.getElementById('auto-scroll-btn');
+            
+            if (!autoScrolling) {
+                autoScrolling = true;
+                btn.textContent = 'Stop Scrolling ⏸️';
+                btn.style.background = '#ef4444';
+                btn.style.color = 'white';
+                
+                // Scroll down every 500ms
+                autoScrollInterval = setInterval(() => {
+                    scrollDown();
+                }, 500);
+            } else {
+                autoScrolling = false;
+                btn.textContent = 'Keep Scrolling ⬇️';
+                btn.style.background = '#e5e7eb';
+                btn.style.color = '#374151';
+                
+                if (autoScrollInterval) {
+                    clearInterval(autoScrollInterval);
+                    autoScrollInterval = null;
+                }
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                connectVNC();
+            }, 2000);
+            loadSettings();
+        });
+
+        // Settings Panel Functions
+        const defaultSettings = {
+            theme: 'purple',
+            autoConnect: true,
+            defaultQuality: 'low',
+            autoSaveEnabled: true,
+            autoSaveInterval: 5,
+            cacheEnabled: true,
+            cacheSize: 200,
+            compressionLevel: 9,
+            hardwareAccel: true,
+            reducedMotion: false,
+            showNotifications: true,
+            soundEffects: false,
+            connectionTimeout: 30,
+            reconnectAttempts: 3,
+            secureConnection: true,
+            clearOnExit: false,
+            trackBandwidth: true,
+            lowBandwidthMode: false,
+            memoryLimit: 512,
+            cpuCoreUsage: 0.9,
+            frameUpdateDelay: 33,
+            networkOptimization: true,
+            aggressiveCaching: true,
+            vncPollingInterval: 40
+        };
+
+        let settings = {...defaultSettings};
+
+        function loadSettings() {
+            const saved = localStorage.getItem('cloudBrowserSettings');
+            if (saved) {
+                settings = {...defaultSettings, ...JSON.parse(saved)};
+            }
+            applySettings();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('cloudBrowserSettings', JSON.stringify(settings));
+            applySettings();
+        }
+
+        function applySettings() {
+            // Apply theme
+            document.body.className = '';
+            if (settings.theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else if (settings.theme === 'blue') {
+                document.body.classList.add('blue-theme');
+            } else if (settings.theme === 'green') {
+                document.body.classList.add('green-theme');
+            }
+
+            // Apply quality
+            currentQuality = settings.defaultQuality;
+
+            // Update UI elements
+            updateSettingsUI();
+        }
+
+        function updateSettingsUI() {
+            // Update theme selection
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.theme === settings.theme) {
+                    opt.classList.add('active');
+                }
+            });
+
+            // Update toggles
+            const toggleMap = {
+                'toggle-autoconnect': 'autoConnect',
+                'toggle-autosave': 'autoSaveEnabled',
+                'toggle-cache': 'cacheEnabled',
+                'toggle-hwaccel': 'hardwareAccel',
+                'toggle-reducedmotion': 'reducedMotion',
+                'toggle-notifications': 'showNotifications',
+                'toggle-sounds': 'soundEffects',
+                'toggle-secure': 'secureConnection',
+                'toggle-clearexit': 'clearOnExit',
+                'toggle-bandwidth': 'trackBandwidth',
+                'toggle-lowbandwidth': 'lowBandwidthMode',
+                'toggle-netoptim': 'networkOptimization',
+                'toggle-aggcache': 'aggressiveCaching'
+            };
+
+            // Update optimization sliders
+            const memoryRange = document.getElementById('range-memory');
+            if (memoryRange) {
+                memoryRange.value = settings.memoryLimit;
+                document.getElementById('memory-value').textContent = settings.memoryLimit + ' MB';
+            }
+
+            const cpuRange = document.getElementById('range-cpu');
+            if (cpuRange) {
+                cpuRange.value = settings.cpuCoreUsage;
+                document.getElementById('cpu-value').textContent = settings.cpuCoreUsage;
+            }
+
+            for (const [id, key] of Object.entries(toggleMap)) {
+                const el = document.getElementById(id);
+                if (el) el.checked = settings[key];
+            }
+
+            // Update selects
+            const qualitySelect = document.getElementById('select-quality');
+            if (qualitySelect) qualitySelect.value = settings.defaultQuality;
+
+            // Update ranges
+            const autosaveRange = document.getElementById('range-autosave');
+            if (autosaveRange) {
+                autosaveRange.value = settings.autoSaveInterval;
+                document.getElementById('autosave-value').textContent = settings.autoSaveInterval + ' min';
+            }
+
+            const cacheRange = document.getElementById('range-cache');
+            if (cacheRange) {
+                cacheRange.value = settings.cacheSize;
+                document.getElementById('cache-value').textContent = settings.cacheSize + ' MB';
+            }
+
+            const compressionRange = document.getElementById('range-compression');
+            if (compressionRange) {
+                compressionRange.value = settings.compressionLevel;
+                document.getElementById('compression-value').textContent = settings.compressionLevel;
+            }
+
+            const timeoutRange = document.getElementById('range-timeout');
+            if (timeoutRange) {
+                timeoutRange.value = settings.connectionTimeout;
+                document.getElementById('timeout-value').textContent = settings.connectionTimeout + 's';
+            }
+
+            const reconnectRange = document.getElementById('range-reconnect');
+            if (reconnectRange) {
+                reconnectRange.value = settings.reconnectAttempts;
+                document.getElementById('reconnect-value').textContent = settings.reconnectAttempts;
+            }
+
+            const frameUpdateRange = document.getElementById('range-frameupdate');
+            if (frameUpdateRange) {
+                frameUpdateRange.value = settings.frameUpdateDelay;
+                document.getElementById('frameupdate-value').textContent = settings.frameUpdateDelay + ' ms';
+            }
+
+            const vncPollRange = document.getElementById('range-vncpoll');
+            if (vncPollRange) {
+                vncPollRange.value = settings.vncPollingInterval;
+                document.getElementById('vncpoll-value').textContent = settings.vncPollingInterval + ' ms';
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settings-overlay').style.display = 'block';
+            updateSettingsUI();
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-overlay').style.display = 'none';
+        }
+
+        function switchSettingsTab(tabId) {
+            document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.settings-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function setTheme(theme) {
+            settings.theme = theme;
+            saveSettings();
+        }
+
+        function updateSetting(key, value) {
+            settings[key] = value;
+            saveSettings();
+        }
+
+        function updateRangeSetting(key, value, displayId, suffix) {
+            settings[key] = parseInt(value);
+            document.getElementById(displayId).textContent = value + suffix;
+            saveSettings();
+        }
+
+        function updateCPUSetting(value) {
+            settings.cpuCoreUsage = parseFloat(value);
+            document.getElementById('cpu-value').textContent = value;
+            saveSettings();
+            applyBrowserOptimizations();
+        }
+
+        async function setBrowserCount(count) {
+            try {
+                const response = await fetch('/api/browser-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ browserCount: count })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to set browser count');
+                
+                // Update UI
+                document.querySelectorAll('.browser-option-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-browsers="${count}"]`).classList.add('active');
+                
+                // Update description
+                const layouts = {
+                    '1': 'Full screen (1280x720)',
+                    '2': 'Side by side (640x720 each)',
+                    '3': 'Horizontal grid (426x960 each)'
+                };
+                document.getElementById('browser-layout-desc').textContent = layouts[count];
+                
+                alert(`✅ Browser configuration updated to ${count} browser(s).`);
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        function applyOptimizationProfile(profile) {
+            const profiles = {
+                minimal: { 
+                    memoryLimit: 256, 
+                    cpuCoreUsage: 0.3,
+                    frameUpdateDelay: 66,
+                    vncPollingInterval: 80,
+                    networkOptimization: true,
+                    aggressiveCaching: true
+                },
+                low: { 
+                    memoryLimit: 256, 
+                    cpuCoreUsage: 0.5,
+                    frameUpdateDelay: 50,
+                    vncPollingInterval: 60,
+                    networkOptimization: true,
+                    aggressiveCaching: true
+                },
+                medium: { 
+                    memoryLimit: 512, 
+                    cpuCoreUsage: 0.9,
+                    frameUpdateDelay: 33,
+                    vncPollingInterval: 40,
+                    networkOptimization: true,
+                    aggressiveCaching: true
+                },
+                high: { 
+                    memoryLimit: 1024, 
+                    cpuCoreUsage: 1.5,
+                    frameUpdateDelay: 16,
+                    vncPollingInterval: 20,
+                    networkOptimization: false,
+                    aggressiveCaching: false
+                }
+            };
+            
+            if (profiles[profile]) {
+                settings.memoryLimit = profiles[profile].memoryLimit;
+                settings.cpuCoreUsage = profiles[profile].cpuCoreUsage;
+                settings.frameUpdateDelay = profiles[profile].frameUpdateDelay;
+                settings.vncPollingInterval = profiles[profile].vncPollingInterval;
+                settings.networkOptimization = profiles[profile].networkOptimization;
+                settings.aggressiveCaching = profiles[profile].aggressiveCaching;
+                saveSettings();
+                updateSettingsUI();
+                applyBrowserOptimizations();
+                alert(`Applied ${profile.toUpperCase()} resource profile!`);
+            }
+        }
+
+        function applyBrowserOptimizations() {
+            fetch('/api/browser/optimize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    memoryLimit: settings.memoryLimit,
+                    cpuCoreUsage: settings.cpuCoreUsage
+                })
+            }).catch(err => console.log('Optimization applied:', err.message));
+        }
+
+        function resetSettings() {
+            if (confirm('Reset all settings to default? This cannot be undone.')) {
+                settings = {...defaultSettings};
+                saveSettings();
+                updateSettingsUI();
+            }
+        }
+
+        function exportSettings() {
+            const dataStr = JSON.stringify(settings, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cloud-browser-settings.json';
+            a.click();
+        }
+
+        function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        settings = {...defaultSettings, ...imported};
+                        saveSettings();
+                        updateSettingsUI();
+                        alert('Settings imported successfully!');
+                    } catch (err) {
+                        alert('Failed to import settings: Invalid file format');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearAllData() {
+            if (confirm('Clear all browser data including cache, cookies, and history? This cannot be undone.')) {
+                fetch('/api/storage/cache/clear', {
+                    method: 'POST',
+                    headers: { 'X-API-Key': '' }
+                }).then(() => {
+                    alert('All data cleared successfully!');
+                }).catch(err => {
+                    alert('Failed to clear data: ' + err.message);
+                });
+            }
+        }
+
+        // Close settings when clicking overlay
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'settings-overlay') {
+                closeSettings();
+            }
+        });
+    </script>
+
+    <!-- Settings Panel -->
+    <div id="settings-overlay" class="settings-overlay">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button class="close-settings" onclick="closeSettings()">x</button>
+            </div>
+            <div class="settings-body">
+                <div class="settings-tabs">
+                    <button class="settings-tab active" onclick="switchSettingsTab('tab-display')">Display</button>
+                    <button class="settings-tab" onclick="switchSettingsTab('tab-optimization')">Optimization</button>
+                    <button class="settings-tab" onclick="switchSettingsTab('tab-performance')">Performance</button>
+                    <button class="settings-tab" onclick="switchSettingsTab('tab-storage')">Storage</button>
+                    <button class="settings-tab" onclick="switchSettingsTab('tab-network')">Network</button>
+                    <button class="settings-tab" onclick="switchSettingsTab('tab-advanced')">Advanced</button>
+                </div>
+
+                <!-- Display Tab -->
+                <div id="tab-display" class="settings-content active">
+                    <div class="settings-section">
+                        <h3>Theme</h3>
+                        <div class="theme-options">
+                            <div class="theme-option theme-purple active" data-theme="purple" onclick="setTheme('purple')"><span>Purple</span></div>
+                            <div class="theme-option theme-dark" data-theme="dark" onclick="setTheme('dark')"><span>Dark</span></div>
+                            <div class="theme-option theme-blue" data-theme="blue" onclick="setTheme('blue')"><span>Blue</span></div>
+                            <div class="theme-option theme-green" data-theme="green" onclick="setTheme('green')"><span>Green</span></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Display Options</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Default Quality</div>
+                                <div class="setting-desc">Set the default streaming quality level</div>
+                            </div>
+                            <div class="setting-control">
+                                <select id="select-quality" class="setting-select" onchange="updateSetting('defaultQuality', this.value)">
+                                    <option value="low">Low (Fast)</option>
+                                    <option value="medium">Balanced</option>
+                                    <option value="high">High Quality</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Reduced Motion</div>
+                                <div class="setting-desc">Reduce animations for accessibility</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-reducedmotion" onchange="updateSetting('reducedMotion', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Show Notifications</div>
+                                <div class="setting-desc">Display system notifications</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-notifications" onchange="updateSetting('showNotifications', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Sound Effects</div>
+                                <div class="setting-desc">Enable audio feedback for actions</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-sounds" onchange="updateSetting('soundEffects', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Browser Windows</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Number of Browsers</div>
+                                <div class="setting-desc">Run multiple browser windows simultaneously</div>
+                            </div>
+                            <div class="setting-control" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="browser-option-btn active" data-browsers="1" onclick="setBrowserCount(1)">1 Browser</button>
+                                <button class="browser-option-btn" data-browsers="2" onclick="setBrowserCount(2)">2 Browsers</button>
+                                <button class="browser-option-btn" data-browsers="3" onclick="setBrowserCount(3)">3 Browsers</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Browser Layout</div>
+                                <div class="setting-desc" id="browser-layout-desc">Full screen (1280x720)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimization Tab -->
+                <div id="tab-optimization" class="settings-content">
+                    <div class="settings-section">
+                        <h3>Memory Optimization</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Memory Limit</div>
+                                <div class="setting-desc">Maximum memory for browser process (MB)</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-memory" class="setting-range" min="256" max="2048" value="512" step="128"
+                                        onchange="updateRangeSetting('memoryLimit', this.value, 'memory-value', ' MB')">
+                                    <span id="memory-value" class="range-value">512 MB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>CPU Optimization</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">CPU Core Usage</div>
+                                <div class="setting-desc">Percentage of CPU cores to use (0.1 - 2.0)</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-cpu" class="setting-range" min="0.1" max="2.0" value="0.9" step="0.1"
+                                        onchange="updateCPUSetting(this.value)">
+                                    <span id="cpu-value" class="range-value">0.9</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Optimization Profile</h3>
+                        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Quick presets for common use cases</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="settings-btn" onclick="applyOptimizationProfile('minimal')">⚡ Minimal</button>
+                            <button class="settings-btn" onclick="applyOptimizationProfile('low')">💾 Low Resource</button>
+                            <button class="settings-btn" onclick="applyOptimizationProfile('medium')">⚖️ Balanced</button>
+                            <button class="settings-btn" onclick="applyOptimizationProfile('high')">🚀 High Performance</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Advanced Tuning</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Frame Update Delay</div>
+                                <div class="setting-desc">Milliseconds between frame updates (lower = smoother)</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-frameupdate" class="setting-range" min="16" max="100" value="33" step="5"
+                                        onchange="updateRangeSetting('frameUpdateDelay', this.value, 'frameupdate-value', ' ms')">
+                                    <span id="frameupdate-value" class="range-value">33 ms</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Network Optimization</div>
+                                <div class="setting-desc">Reduce bandwidth usage and optimize streaming</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-netoptim" onchange="updateSetting('networkOptimization', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Aggressive Caching</div>
+                                <div class="setting-desc">Cache more aggressively for faster loads</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-aggcache" onchange="updateSetting('aggressiveCaching', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">VNC Polling Interval</div>
+                                <div class="setting-desc">Milliseconds between screen polls (higher = less CPU)</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-vncpoll" class="setting-range" min="10" max="100" value="40" step="10"
+                                        onchange="updateRangeSetting('vncPollingInterval', this.value, 'vncpoll-value', ' ms')">
+                                    <span id="vncpoll-value" class="range-value">40 ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Tab -->
+                <div id="tab-performance" class="settings-content">
+                    <div class="settings-section">
+                        <h3>Browser Optimization</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Hardware Acceleration</div>
+                                <div class="setting-desc">Use GPU for better performance</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-hwaccel" onchange="updateSetting('hardwareAccel', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Auto-Connect on Load</div>
+                                <div class="setting-desc">Automatically connect to browser on page load</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-autoconnect" onchange="updateSetting('autoConnect', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Compression Level</div>
+                                <div class="setting-desc">Higher = smaller data, lower = better quality</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-compression" class="setting-range" min="0" max="9" value="9" 
+                                        onchange="updateRangeSetting('compressionLevel', this.value, 'compression-value', '')">
+                                    <span id="compression-value" class="range-value">9</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Low Bandwidth Mode</div>
+                                <div class="setting-desc">Optimize for slow connections</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-lowbandwidth" onchange="updateSetting('lowBandwidthMode', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Tab -->
+                <div id="tab-storage" class="settings-content">
+                    <div class="settings-section">
+                        <h3>Auto-Save Settings</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Enable Auto-Save</div>
+                                <div class="setting-desc">Automatically save browser state periodically</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-autosave" onchange="updateSetting('autoSaveEnabled', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Auto-Save Interval</div>
+                                <div class="setting-desc">How often to save browser state</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-autosave" class="setting-range" min="1" max="30" value="5" 
+                                        onchange="updateRangeSetting('autoSaveInterval', this.value, 'autosave-value', ' min')">
+                                    <span id="autosave-value" class="range-value">5 min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Cache Settings</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Enable Caching</div>
+                                <div class="setting-desc">Cache data for faster access</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-cache" onchange="updateSetting('cacheEnabled', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Cache Size</div>
+                                <div class="setting-desc">Maximum cache storage in MB</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-cache" class="setting-range" min="50" max="500" value="200" step="50"
+                                        onchange="updateRangeSetting('cacheSize', this.value, 'cache-value', ' MB')">
+                                    <span id="cache-value" class="range-value">200 MB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Data Management</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Clear on Exit</div>
+                                <div class="setting-desc">Clear temporary data when closing browser</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-clearexit" onchange="updateSetting('clearOnExit', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="settings-btn settings-btn-danger" onclick="clearAllData()">Clear All Data</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Tab -->
+                <div id="tab-network" class="settings-content">
+                    <div class="settings-section">
+                        <h3>Connection Settings</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Secure Connection</div>
+                                <div class="setting-desc">Use encrypted WebSocket connection</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-secure" onchange="updateSetting('secureConnection', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Connection Timeout</div>
+                                <div class="setting-desc">Seconds to wait before timeout</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-timeout" class="setting-range" min="10" max="60" value="30"
+                                        onchange="updateRangeSetting('connectionTimeout', this.value, 'timeout-value', 's')">
+                                    <span id="timeout-value" class="range-value">30s</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Reconnect Attempts</div>
+                                <div class="setting-desc">Number of reconnection attempts</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" id="range-reconnect" class="setting-range" min="1" max="10" value="3"
+                                        onchange="updateRangeSetting('reconnectAttempts', this.value, 'reconnect-value', '')">
+                                    <span id="reconnect-value" class="range-value">3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-label">Track Bandwidth Usage</div>
+                                <div class="setting-desc">Monitor data transfer statistics</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-bandwidth" onchange="updateSetting('trackBandwidth', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Tab -->
+                <div id="tab-advanced" class="settings-content">
+                    <div class="settings-section">
+                        <h3>Backup & Restore</h3>
+                        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Export or import your settings configuration</p>
+                        <div class="btn-group">
+                            <button class="settings-btn" onclick="exportSettings()">Export Settings</button>
+                            <button class="settings-btn settings-btn-secondary" onclick="importSettings()">Import Settings</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Reset</h3>
+                        <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Reset all settings to their default values</p>
+                        <div class="btn-group">
+                            <button class="settings-btn settings-btn-danger" onclick="resetSettings()">Reset to Defaults</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>About</h3>
+                        <p style="color: #666; font-size: 13px; line-height: 1.6;">
+                            Cloud Browser v1.0<br>
+                            A cloud-based browser with VNC streaming<br>
+                            Features: Multi-tier storage, auto-save, AI agent integration
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

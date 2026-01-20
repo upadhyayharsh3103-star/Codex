@@ -1,0 +1,31 @@
+{
+  "name": "cloud-browser",
+  "version": "1.0.0",
+  "description": "Cloud-based browser accessible via VNC",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "package": "node scripts/create-deployment-package.js",
+    "package:mobile": "node scripts/create-mobile-package.js",
+    "push-to-github": "node scripts/push-to-github.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.33.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "@octokit/rest": "^22.0.1",
+    "@replit/object-storage": "^1.0.0",
+    "archiver": "^7.0.1",
+    "better-sqlite3": "^12.4.1",
+    "drizzle-kit": "^0.31.6",
+    "drizzle-orm": "^0.44.7",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
+    "extract-zip": "^2.0.1",
+    "multer": "^2.0.2",
+    "unzipper": "^0.12.3",
+    "uuid": "^13.0.0",
+    "ws": "^8.14.2"
+  }
+}
