@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VNC Test</title>
+</head>
+<body>
+    <h1>Direct VNC Link Test</h1>
+    <p>Click the link below to test the VNC connection:</p>
+    <a href="/novnc/vnc.html?path=/websockify&autoconnect=true&resize=scale" target="_blank">Open VNC in new tab</a>
+    
+    <hr>
+    <h2>Debug Info:</h2>
+    <pre id="debug"></pre>
+    
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsPath = '/websockify';
+        const vncUrl = '/novnc/vnc.html?path=' + encodeURIComponent(wsPath) + '&autoconnect=true&resize=scale';
+        
+        document.getElementById('debug').textContent = 
+            'Protocol: ' + window.location.protocol + '\n' +
+            'Host: ' + window.location.host + '\n' +
+            'WS Protocol: ' + protocol + '\n' +
+            'WS Path: ' + wsPath + '\n' +
+            'Full VNC URL: ' + vncUrl;
+    </script>
+</body>
+</html>

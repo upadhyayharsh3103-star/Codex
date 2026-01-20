@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: cloud-browser
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: standard
+    region: oregon
+    numInstances: 1
+    
+    # Start command with graceful timeout handling
+    startCommand: "node server.js"
+    
+    # Environment variables
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5000"
+      - key: DISPLAY
+        value: ":99"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cloud-browser-db
+          property: connectionString
+      - key: NODE_OPTS
+        value: "--max-old-space-size=512 --no-warnings"
+      - key: KEEP_ALIVE
+        value: "true"
+      - key: KEEP_ALIVE_INTERVAL
+        value: "10"
+    
+    # Health check configuration
+    healthCheckPath: /health
+    healthCheckInterval: 30
+    healthCheckTimeout: 10
+    initialDelaySeconds: 60
+    
+    # Auto-deployment
+    autoDeploy: true
+    
+    # Docker configuration
+    dockerfile: Dockerfile
+    dockerContext: .
+    dockerBuildArgs:
+      - NODE_ENV=production
+    
+    # Build and deploy settings
+    buildSettings:
+      preDeploy: "npm run db:push --force || true"
+
+databases:
+  - name: cloud-browser-db
+    databaseName: cloud_browser
+    plan: free
+    region: oregon
+    postgresMajorVersion: "15"
+    initializer: "npm run db:push --force"
