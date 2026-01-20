@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Save Memory Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .status-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .status-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .status-value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .status-badge.running {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-badge.stopped {
+            background: #ef4444;
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-meta {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .config-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .config-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .tier-hot {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tier-warm {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .tier-cold {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Auto-Save Memory Dashboard</h1>
+            <p>Continuous automatic backup of all your browser user data</p>
+        </div>
+
+        <div class="status-card">
+            <h2 style="color: #333; margin-bottom: 15px;">System Status</h2>
+            <div id="statusContent">
+                <div class="loading">Loading status...</div>
+            </div>
+        </div>
+
+        <div class="history-card">
+            <div class="history-header">
+                <h2>Auto-Save History</h2>
+                <button class="btn btn-info btn-small" onclick="refreshHistory()">🔄 Refresh</button>
+            </div>
+            <div id="historyContent">
+                <div class="loading">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let apiKey = '';
+
+        const API_BASE = '/api/autosave';
+
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-API-Key': apiKey
+            };
+
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers: { ...headers, ...options.headers }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'API request failed');
+            }
+
+            return response.json();
+        }
+
+        async function loadStatus() {
+            try {
+                const status = await apiCall('/status');
+                renderStatus(status);
+            } catch (error) {
+                document.getElementById('statusContent').innerHTML = `
+                    <div style="color: #ef4444; text-align: center;">
+                        Error loading status: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function renderStatus(status) {
+            const statusBadge = status.isRunning 
+                ? '<span class="status-badge running">🟢 Running</span>'
+                : '<span class="status-badge stopped">🔴 Stopped</span>';
+
+            const lastSave = status.lastSaveTime 
+                ? new Date(status.lastSaveTime).toLocaleString()
+                : 'Never';
+
+            const intervalMinutes = Math.floor(status.autoSaveInterval / 60000);
+
+            const html = `
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-label">Status</div>
+                        <div class="status-value">${statusBadge}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Last Save</div>
+                        <div class="status-value" style="font-size: 14px;">${lastSave}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Total Saves</div>
+                        <div class="status-value">${status.saveCount}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Save Interval</div>
+                        <div class="status-value">${intervalMinutes}m</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Max History</div>
+                        <div class="status-value">${status.maxAutoSaves}</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="startAutoSave()" ${status.isRunning ? 'disabled' : ''}>
+                        ▶️ Start Auto-Save
+                    </button>
+                    <button class="btn btn-danger" onclick="stopAutoSave()" ${!status.isRunning ? 'disabled' : ''}>
+                        ⏸️ Stop Auto-Save
+                    </button>
+                    <button class="btn btn-secondary" onclick="saveNow()">
+                        💾 Save Now
+                    </button>
+                    <button class="btn btn-info" onclick="toggleConfig()">
+                        ⚙️ Configure
+                    </button>
+                </div>
+
+                <div id="configSection" style="display: none;">
+                    <div class="config-section">
+                        <h3>Configuration</h3>
+                        <div class="config-form">
+                            <div class="form-group">
+                                <label>Auto-Save Interval (minutes)</label>
+                                <input type="number" id="intervalInput" min="1" max="1440" value="${intervalMinutes}">
+                            </div>
+                            <div class="form-group">
+                                <label>Max Auto-Saves to Keep</label>
+                                <input type="number" id="maxSavesInput" min="10" max="500" value="${status.maxAutoSaves}">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 15px;" onclick="updateConfig()">
+                            💾 Save Configuration
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('statusContent').innerHTML = html;
+        }
+
+        async function loadHistory() {
+            try {
+                const history = await apiCall('/history?limit=50');
+                renderHistory(history);
+            } catch (error) {
+                document.getElementById('historyContent').innerHTML = `
+                    <div style="color: #ef4444; text-align: center;">
+                        Error loading history: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function renderHistory(history) {
+            if (history.length === 0) {
+                document.getElementById('historyContent').innerHTML = `
+                    <div class="empty-state">
+                        <p>No auto-saves yet. The system will create saves automatically.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="history-list">
+                    ${history.map(item => `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-name">
+                                    ${item.name}
+                                    ${getTierBadge(item.storageTier)}
+                                </div>
+                                <div class="history-meta">
+                                    📅 ${new Date(item.createdAt).toLocaleString()} • 
+                                    💾 ${item.sizeMB} MB • 
+                                    👁️ ${item.accessCount} views
+                                </div>
+                            </div>
+                            <div class="history-actions">
+                                <button class="btn btn-primary btn-small" onclick="restoreSnapshot('${item.id}')">
+                                    🔄 Restore
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('historyContent').innerHTML = html;
+        }
+
+        function getTierBadge(tier) {
+            const badges = {
+                'hot': '<span class="tier-badge tier-hot">HOT</span>',
+                'warm': '<span class="tier-badge tier-warm">WARM</span>',
+                'cold': '<span class="tier-badge tier-cold">COLD</span>'
+            };
+            return badges[tier] || '';
+        }
+
+        async function startAutoSave() {
+            try {
+                await apiCall('/start', { method: 'POST' });
+                alert('✅ Auto-Save started successfully!');
+                await loadStatus();
+            } catch (error) {
+                alert('❌ Failed to start auto-save: ' + error.message);
+            }
+        }
+
+        async function stopAutoSave() {
+            try {
+                await apiCall('/stop', { method: 'POST' });
+                alert('✅ Auto-Save stopped');
+                await loadStatus();
+            } catch (error) {
+                alert('❌ Failed to stop auto-save: ' + error.message);
+            }
+        }
+
+        async function saveNow() {
+            try {
+                const btn = event.target;
+                btn.disabled = true;
+                btn.textContent = '💾 Saving...';
+                
+                await apiCall('/save-now', { method: 'POST' });
+                alert('✅ Manual save completed successfully!');
+                await Promise.all([loadStatus(), loadHistory()]);
+                
+                btn.disabled = false;
+                btn.textContent = '💾 Save Now';
+            } catch (error) {
+                alert('❌ Failed to save: ' + error.message);
+                event.target.disabled = false;
+                event.target.textContent = '💾 Save Now';
+            }
+        }
+
+        async function restoreSnapshot(snapshotId) {
+            if (!confirm('⚠️ This will restore your browser to this auto-save point and restart the browser. Continue?')) {
+                return;
+            }
+
+            try {
+                const btn = event.target;
+                btn.disabled = true;
+                btn.textContent = '🔄 Restoring...';
+                
+                await apiCall(`/restore/${snapshotId}`, { method: 'POST' });
+                alert('✅ Browser data restored! The browser will restart automatically.');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } catch (error) {
+                alert('❌ Failed to restore: ' + error.message);
+                event.target.disabled = false;
+                event.target.textContent = '🔄 Restore';
+            }
+        }
+
+        function toggleConfig() {
+            const section = document.getElementById('configSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function updateConfig() {
+            try {
+                const interval = parseInt(document.getElementById('intervalInput').value);
+                const maxSaves = parseInt(document.getElementById('maxSavesInput').value);
+
+                await apiCall('/config', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        autoSaveInterval: interval * 60000,
+                        maxAutoSaves: maxSaves
+                    })
+                });
+
+                alert('✅ Configuration updated successfully!');
+                await loadStatus();
+            } catch (error) {
+                alert('❌ Failed to update config: ' + error.message);
+            }
+        }
+
+        async function refreshHistory() {
+            await loadHistory();
+        }
+
+        // Initial load
+        Promise.all([loadStatus(), loadHistory()])
+            .then(() => {
+                console.log('Dashboard loaded successfully');
+            })
+            .catch(error => {
+                console.error('Failed to load dashboard:', error);
+            });
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadStatus();
+        }, 30000);
+    </script>
+</body>
+</html>

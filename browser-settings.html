@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Settings - Cloud Browser</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .browser-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .option input {
+      display: none;
+    }
+    
+    .option-label {
+      width: 100%;
+      padding: 20px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+    
+    .option-label:hover {
+      border-color: #667eea;
+      background: #f0f3ff;
+    }
+    
+    .option input:checked + .option-label {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .option-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .option-desc {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .preview {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .preview-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    
+    .preview-window {
+      display: inline-block;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      margin: 5px;
+      padding: 10px;
+      text-align: center;
+      font-size: 11px;
+      min-width: 80px;
+    }
+    
+    .preview-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-save {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-save:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-cancel {
+      background: #f0f0f0;
+      color: #333;
+    }
+    
+    .btn-cancel:hover {
+      background: #e0e0e0;
+    }
+    
+    .status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+    
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin-bottom: 30px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #0c5aa0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🖥️ Browser Configuration</h1>
+    <p class="subtitle">Select how many browsers to run simultaneously</p>
+    
+    <div class="info-box">
+      💡 <strong>Tip:</strong> More browsers = more windows on screen. Select based on your screen size and needs.
+    </div>
+    
+    <div class="browser-options">
+      <div class="option">
+        <input type="radio" id="browser-1" name="browser-count" value="1">
+        <label for="browser-1" class="option-label">
+          <div class="option-title">1 Browser</div>
+          <div class="option-desc">Default (1280x720)</div>
+        </label>
+      </div>
+      
+      <div class="option">
+        <input type="radio" id="browser-2" name="browser-count" value="2">
+        <label for="browser-2" class="option-label">
+          <div class="option-title">2 Browsers</div>
+          <div class="option-desc">Side by side (640x720 each)</div>
+        </label>
+      </div>
+      
+      <div class="option">
+        <input type="radio" id="browser-3" name="browser-count" value="3">
+        <label for="browser-3" class="option-label">
+          <div class="option-title">3 Browsers</div>
+          <div class="option-desc">Horizontal grid (426x960 each)</div>
+        </label>
+      </div>
+    </div>
+    
+    <div class="preview">
+      <div class="preview-label">📐 Display Preview</div>
+      <div class="preview-grid" id="preview"></div>
+    </div>
+    
+    <div class="button-group">
+      <button class="btn-save" onclick="saveBrowserConfig()">✅ Save & Restart</button>
+      <button class="btn-cancel" onclick="closeSettings()">✕ Close</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    const API_KEY = new URLSearchParams(window.location.search).get('api_key');
+    
+    async function loadBrowserConfig() {
+      try {
+        const response = await fetch('/api/browser-config', {
+          headers: { 'X-API-Key': API_KEY }
+        });
+        const data = await response.json();
+        
+        const radio = document.querySelector(`input[value="${data.browserCount}"]`);
+        if (radio) {
+          radio.checked = true;
+          updatePreview(data.browserCount);
+        }
+      } catch (error) {
+        console.error('Failed to load config:', error);
+      }
+    }
+    
+    function updatePreview(count) {
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '';
+      
+      const layouts = {
+        '1': ['1280x720'],
+        '2': ['640x720', '640x720'],
+        '3': ['426x960', '426x960', '426x960']
+      };
+      
+      layouts[count].forEach((size, i) => {
+        const div = document.createElement('div');
+        div.className = 'preview-window';
+        div.innerHTML = `Browser ${i + 1}<br>${size}`;
+        preview.appendChild(div);
+      });
+    }
+    
+    document.querySelectorAll('input[name="browser-count"]').forEach(radio => {
+      radio.addEventListener('change', () => updatePreview(radio.value));
+    });
+    
+    async function saveBrowserConfig() {
+      const count = document.querySelector('input[name="browser-count"]:checked').value;
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '⏳ Saving...';
+      
+      try {
+        const response = await fetch('/api/browser-config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+          },
+          body: JSON.stringify({ browserCount: parseInt(count) })
+        });
+        
+        if (!response.ok) throw new Error('Failed to save');
+        
+        showStatus('✅ Configuration saved! Restarting browsers...', 'success');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      } catch (error) {
+        showStatus('❌ Failed to save configuration: ' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '✅ Save & Restart';
+      }
+    }
+    
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+    }
+    
+    function closeSettings() {
+      window.location.href = '/';
+    }
+    
+    loadBrowserConfig();
+  </script>
+</body>
+</html>

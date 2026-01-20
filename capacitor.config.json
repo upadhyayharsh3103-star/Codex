@@ -1,0 +1,40 @@
+{
+  "appId": "com.cloudbrowser.app",
+  "appName": "Cloud Browser",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "allowNavigation": [
+      "*://*.onrender.com/*",
+      "*://*.railway.app/*",
+      "*://*.fly.dev/*",
+      "*://*.replit.dev/*",
+      "*://*.repl.co/*",
+      "https://*",
+      "http://*"
+    ],
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#667eea",
+      "showSpinner": true,
+      "spinnerColor": "#ffffff"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#667eea"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "resizeOnFullScreen": true
+    }
+  },
+  "android": {
+    "allowMixedContent": true,
+    "webContentsDebuggingEnabled": true,
+    "appendUserAgent": "CloudBrowserApp"
+  }
+}
